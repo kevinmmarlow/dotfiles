@@ -1,0 +1,3 @@
+# Override stow's built-in ignore list (which skips .gitignore) so this
+# package's .gitignore is symlinked to ~/.gitignore. Only real junk is ignored.
+\.DS_Store
