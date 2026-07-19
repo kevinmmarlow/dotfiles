@@ -1,0 +1,138 @@
+{
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  },
+  "permissions": {
+    "allow": [
+      "Grep",
+      "Glob",
+      "Read",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git branch:*)",
+      "Bash(git checkout:*)",
+      "Bash(git switch:*)",
+      "Bash(git stash:*)",
+      "Bash(git fetch:*)",
+      "Bash(git pull:*)",
+      "Bash(git merge:*)",
+      "Bash(just lint-types:*)",
+      "Bash(just e2e run:*)",
+      "Bash(just tt:*)",
+      "Bash(just turbo test:*)",
+      "Bash(just turbo lint:*)",
+      "Bash(just codegen:*)",
+      "Bash(just --list)",
+      "Bash(pnpm exec tsc --noEmit:*)",
+      "Bash(pnpm exec vitest run:*)",
+      "Bash(pnpm run lint:types:*)",
+      "mcp__user-Linear__get_issue",
+      "mcp__user-Linear__list_issues",
+      "mcp__user-Linear__get_issue_status",
+      "mcp__user-Linear__list_issue_statuses",
+      "mcp__user-Linear__list_issue_labels",
+      "mcp__user-Linear__list_comments",
+      "mcp__user-Linear__get_document",
+      "mcp__user-Linear__list_documents",
+      "mcp__user-Linear__search_documentation",
+      "mcp__user-Linear__get_project",
+      "mcp__user-Linear__list_projects",
+      "mcp__user-Linear__list_project_labels",
+      "mcp__user-Linear__get_milestone",
+      "mcp__user-Linear__list_milestones",
+      "mcp__user-Linear__list_cycles",
+      "mcp__user-Linear__get_team",
+      "mcp__user-Linear__list_teams",
+      "mcp__user-Linear__get_user",
+      "mcp__user-Linear__list_users",
+      "mcp__user-Linear__get_initiative",
+      "mcp__user-Linear__list_initiatives",
+      "mcp__user-Linear__get_status_updates",
+      "mcp__user-Linear__get_attachment",
+      "mcp__user-Linear__list_customers",
+      "mcp__user-Linear__extract_images",
+      "mcp__user-github__pull_request_read",
+      "mcp__user-github__list_pull_requests",
+      "mcp__user-github__search_pull_requests",
+      "mcp__user-github__issue_read",
+      "mcp__user-github__list_issues",
+      "mcp__user-github__list_issue_types",
+      "mcp__user-github__search_issues",
+      "mcp__user-github__list_commits",
+      "mcp__user-github__get_commit",
+      "mcp__user-github__list_branches",
+      "mcp__user-github__list_tags",
+      "mcp__user-github__get_tag",
+      "mcp__user-github__list_releases",
+      "mcp__user-github__get_latest_release",
+      "mcp__user-github__get_release_by_tag",
+      "mcp__user-github__get_file_contents",
+      "mcp__user-github__get_label",
+      "mcp__user-github__get_me",
+      "mcp__user-github__get_teams",
+      "mcp__user-github__get_team_members",
+      "mcp__user-github__search_code",
+      "mcp__user-github__search_repositories",
+      "mcp__user-github__search_users"
+    ]
+  },
+  "model": "sonnet",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/allow-readonly-recon.py"
+          },
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/block-dangerous-git.sh"
+          },
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/block-prisma-reset.sh"
+          }
+        ]
+      }
+    ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "bash ~/.claude/statusline-wrapper.sh"
+  },
+  "enabledPlugins": {
+    "codex@openai-codex": false,
+    "figma@claude-plugins-official": false,
+    "gitkraken-hooks@gitkraken": false,
+    "ruby-lsp@claude-plugins-official": true,
+    "slack@claude-plugins-official": true,
+    "superpowers@claude-plugins-official": true
+  },
+  "extraKnownMarketplaces": {
+    "gitkraken": {
+      "source": {
+        "source": "directory",
+        "path": "/Users/kevinmarlow/.claude/plugins/marketplaces/gitkraken"
+      }
+    },
+    "openai-codex": {
+      "source": {
+        "source": "github",
+        "repo": "openai/codex-plugin-cc"
+      }
+    },
+    "superpowers-marketplace": {
+      "source": {
+        "source": "github",
+        "repo": "obra/superpowers-marketplace"
+      }
+    }
+  },
+  "tui": "fullscreen"
+}

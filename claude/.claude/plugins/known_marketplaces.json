@@ -1,0 +1,34 @@
+{
+  "claude-plugins-official": {
+    "source": {
+      "source": "github",
+      "repo": "anthropics/claude-plugins-official"
+    },
+    "installLocation": "/Users/kevinmarlow/.claude/plugins/marketplaces/claude-plugins-official",
+    "lastUpdated": "2026-07-18T09:07:49.931Z"
+  },
+  "gitkraken": {
+    "source": {
+      "source": "directory",
+      "path": "/Users/kevinmarlow/.claude/plugins/marketplaces/gitkraken"
+    },
+    "installLocation": "/Users/kevinmarlow/.claude/plugins/marketplaces/gitkraken",
+    "lastUpdated": "2026-06-23T17:00:40Z"
+  },
+  "openai-codex": {
+    "source": {
+      "source": "github",
+      "repo": "openai/codex-plugin-cc"
+    },
+    "installLocation": "/Users/kevinmarlow/.claude/plugins/marketplaces/openai-codex",
+    "lastUpdated": "2026-04-08T07:21:41.710Z"
+  },
+  "superpowers-marketplace": {
+    "source": {
+      "source": "github",
+      "repo": "obra/superpowers-marketplace"
+    },
+    "installLocation": "/Users/kevinmarlow/.claude/plugins/marketplaces/superpowers-marketplace",
+    "lastUpdated": "2026-04-27T22:21:36.521Z"
+  }
+}

@@ -1,0 +1,21 @@
+# macOS
+.DS_Store
+
+# Secrets: never committed. Generated to ~/.zsh/secrets.zsh (outside this repo);
+# these patterns are defensive in case one ever lands in the tree.
+**/secrets.zsh
+**/*.local
+**/*.local.json
+
+# Machine-local overrides
+git/.gitconfig.local
+zsh/.zsh/*.local
+
+# Claude Code: only intentional config is tracked, never state
+claude/.claude/settings.local.json
+
+# Theme state: which theme is currently active (per machine)
+config/.config/themes/current
+
+# zsh compiled completion dumps
+.zcompdump*

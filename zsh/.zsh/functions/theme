@@ -1,0 +1,226 @@
+# Interactive terminal + prompt theme switcher.
+#
+# Themes live in ~/.config/themes/{starship,wezterm}/ so adding or removing a
+# theme is just adding or removing a file — no code changes needed.
+#
+#   theme                  interactive picker for both wezterm + starship
+#   theme list             list available themes per tool
+#   theme <name>           set both tools to <name> (non-interactive)
+#   theme -s <name>        set starship only
+#   theme -w <name>        set wezterm only
+
+function theme() {
+  local themes_dir="$HOME/.config/themes"
+  local current_file="$themes_dir/current"
+  local starship_dir="$themes_dir/starship"
+  local wezterm_dir="$themes_dir/wezterm"
+  local starship_cfg="$HOME/.config/starship.toml"
+  local marker="# ~~~ theme palette (managed by \`theme\`, do not edit below) ~~~"
+
+  # --- helpers ---
+
+  _theme_current() {
+    local key="$1"
+    [[ -f "$current_file" ]] || return 1
+    while IFS='=' read -r k v; do
+      [[ "$k" == "$key" ]] && { echo "$v"; return 0; }
+    done < "$current_file"
+    return 1
+  }
+
+  _theme_set_current() {
+    local key="$1" val="$2"
+    if [[ ! -f "$current_file" ]]; then
+      echo "${key}=${val}" > "$current_file"
+      return
+    fi
+    local tmp; tmp=$(mktemp)
+    local found=0
+    while IFS= read -r line; do
+      if [[ "$line" == ${key}=* ]]; then
+        echo "${key}=${val}" >> "$tmp"
+        found=1
+      else
+        echo "$line" >> "$tmp"
+      fi
+    done < "$current_file"
+    (( found == 0 )) && echo "${key}=${val}" >> "$tmp"
+    mv "$tmp" "$current_file"
+  }
+
+  _theme_apply_starship() {
+    local name="$1"
+    local palette_file="$starship_dir/${name}.toml"
+    if [[ ! -f "$palette_file" ]]; then
+      echo "starship theme '${name}' not found in $starship_dir" >&2
+      return 1
+    fi
+
+    local palette_name
+    palette_name=$(grep '^\[palettes\.' "$palette_file" | head -1 | sed 's/\[palettes\.\(.*\)\]/\1/')
+    if [[ -z "$palette_name" ]]; then
+      echo "no [palettes.*] header in $palette_file" >&2
+      return 1
+    fi
+
+    local tmp; tmp=$(mktemp)
+    # Update palette = '...' line and truncate at the marker
+    while IFS= read -r line; do
+      if [[ "$line" == "palette = "* ]]; then
+        echo "palette = '${palette_name}'" >> "$tmp"
+      elif [[ "$line" == "$marker"* ]]; then
+        break
+      else
+        echo "$line" >> "$tmp"
+      fi
+    done < "$starship_cfg"
+
+    # Strip trailing blank lines, then append marker + palette
+    local cleaned; cleaned=$(mktemp)
+    awk 'NF{p=NR} {a[NR]=$0} END{for(i=1;i<=p;i++) print a[i]}' "$tmp" > "$cleaned"
+    mv "$cleaned" "$tmp"
+    echo "" >> "$tmp"
+    echo "$marker" >> "$tmp"
+    cat "$palette_file" >> "$tmp"
+    mv "$tmp" "$starship_cfg"
+
+    _theme_set_current starship "$name"
+  }
+
+  _theme_apply_wezterm() {
+    local name="$1"
+    if [[ ! -f "$wezterm_dir/$name" ]]; then
+      echo "wezterm theme '${name}' not found in $wezterm_dir" >&2
+      return 1
+    fi
+    _theme_set_current wezterm "$name"
+  }
+
+  # --- subcommands ---
+
+  # No args → interactive picker
+  if (( $# == 0 )); then
+    local cur_s; cur_s=$(_theme_current starship)
+    local cur_w; cur_w=$(_theme_current wezterm)
+
+    echo "Current:"
+    echo "  terminal (wezterm):  ${cur_w:-(not set)}"
+    echo "  prompt   (starship): ${cur_s:-(not set)}"
+    echo ""
+
+    # Build wezterm choices
+    local -a wt_themes
+    for f in "$wezterm_dir"/*(N:t); do wt_themes+=("$f"); done
+    if (( ${#wt_themes} == 0 )); then
+      echo "No wezterm themes found in $wezterm_dir" >&2
+      return 1
+    fi
+    wt_themes+=("(keep current)")
+
+    echo "Select terminal (wezterm) theme:"
+    local wt_pick=""
+    select choice in "${wt_themes[@]}"; do
+      if [[ -n "$choice" ]]; then
+        wt_pick="$choice"
+        break
+      fi
+      echo "Invalid selection, try again."
+    done
+
+    # Build starship choices
+    local -a sp_themes
+    for f in "$starship_dir"/*.toml(N:t:r); do sp_themes+=("$f"); done
+    if (( ${#sp_themes} == 0 )); then
+      echo "No starship themes found in $starship_dir" >&2
+      return 1
+    fi
+    sp_themes+=("(keep current)")
+
+    echo ""
+    echo "Select prompt (starship) theme:"
+    local sp_pick=""
+    select choice in "${sp_themes[@]}"; do
+      if [[ -n "$choice" ]]; then
+        sp_pick="$choice"
+        break
+      fi
+      echo "Invalid selection, try again."
+    done
+
+    echo ""
+
+    if [[ "$wt_pick" != "(keep current)" ]]; then
+      _theme_apply_wezterm "$wt_pick" || return 1
+      echo "terminal → $wt_pick"
+    else
+      echo "terminal → (unchanged)"
+    fi
+
+    if [[ "$sp_pick" != "(keep current)" ]]; then
+      _theme_apply_starship "$sp_pick" || return 1
+      echo "prompt   → $sp_pick"
+    else
+      echo "prompt   → (unchanged)"
+    fi
+
+    return 0
+  fi
+
+  # list
+  if [[ "$1" == "list" ]]; then
+    local cur_s; cur_s=$(_theme_current starship)
+    local cur_w; cur_w=$(_theme_current wezterm)
+
+    echo "Starship themes (prompt):"
+    for f in "$starship_dir"/*.toml(N:t:r); do
+      if [[ "$f" == "$cur_s" ]]; then
+        echo "  $f  ← active"
+      else
+        echo "  $f"
+      fi
+    done
+
+    echo ""
+    echo "WezTerm themes (terminal):"
+    for f in "$wezterm_dir"/*(N:t); do
+      if [[ "$f" == "$cur_w" ]]; then
+        echo "  $f  ← active"
+      else
+        echo "  $f"
+      fi
+    done
+    return 0
+  fi
+
+  # Flagged or positional usage
+  local mode="both" name=""
+  while (( $# )); do
+    case "$1" in
+      -s) mode="starship"; shift ;;
+      -w) mode="wezterm";  shift ;;
+      *)  name="$1";       shift ;;
+    esac
+  done
+
+  if [[ -z "$name" ]]; then
+    echo "usage: theme [-s|-w] <name>" >&2
+    return 1
+  fi
+
+  case "$mode" in
+    starship)
+      _theme_apply_starship "$name" || return 1
+      echo "prompt   → $name"
+      ;;
+    wezterm)
+      _theme_apply_wezterm "$name" || return 1
+      echo "terminal → $name"
+      ;;
+    both)
+      _theme_apply_starship "$name" || return 1
+      _theme_apply_wezterm "$name"  || return 1
+      echo "prompt   → $name"
+      echo "terminal → $name"
+      ;;
+  esac
+}

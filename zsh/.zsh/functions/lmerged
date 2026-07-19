@@ -1,0 +1,13 @@
+# Find all local merged branches
+lmerged() {
+    branches=$(git branch --sort=committerdate --merged | grep -v HEAD)
+    for branch in $branches
+    do
+        trimmed="$(string trim -- "$(string replace '*' '' "$branch")")"
+        branchprint=$(git show --format="%h  %<(15,trunc)%cr %<(15,trunc)%cn" "$trimmed" | head -n 1)
+        echo -e "$branchprint \\t$trimmed"
+        set -e branchprint
+        set -e trimmed
+    done
+    set -e branches
+}

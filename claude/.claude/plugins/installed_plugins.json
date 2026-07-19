@@ -1,0 +1,61 @@
+{
+  "version": 2,
+  "plugins": {
+    "codex@openai-codex": [
+      {
+        "scope": "user",
+        "installPath": "/Users/kevinmarlow/.claude/plugins/cache/openai-codex/codex/1.0.3",
+        "version": "1.0.3",
+        "installedAt": "2026-06-24T21:24:24.563Z",
+        "lastUpdated": "2026-06-24T21:24:24.563Z",
+        "gitCommitSha": "11a720b7db874ae5801607cafbde8d6885ce9022"
+      }
+    ],
+    "figma@claude-plugins-official": [
+      {
+        "scope": "user",
+        "installPath": "/Users/kevinmarlow/.claude/plugins/cache/claude-plugins-official/figma/2.2.81",
+        "version": "2.2.81",
+        "installedAt": "2026-06-24T21:24:24.563Z",
+        "lastUpdated": "2026-07-14T02:07:47.591Z"
+      }
+    ],
+    "gitkraken-hooks@gitkraken": [
+      {
+        "scope": "user",
+        "installPath": "/Users/kevinmarlow/.claude/plugins/cache/gitkraken/gitkraken-hooks/3.1.68",
+        "version": "3.1.68",
+        "installedAt": "2026-06-24T21:24:24.563Z",
+        "lastUpdated": "2026-06-24T21:24:24.563Z"
+      }
+    ],
+    "ruby-lsp@claude-plugins-official": [
+      {
+        "scope": "user",
+        "installPath": "/Users/kevinmarlow/.claude/plugins/cache/claude-plugins-official/ruby-lsp/1.0.0",
+        "version": "1.0.0",
+        "installedAt": "2026-06-24T21:24:24.563Z",
+        "lastUpdated": "2026-06-24T21:24:24.563Z"
+      }
+    ],
+    "slack@claude-plugins-official": [
+      {
+        "scope": "user",
+        "installPath": "/Users/kevinmarlow/.claude/plugins/cache/claude-plugins-official/slack/1.1.0",
+        "version": "1.1.0",
+        "installedAt": "2026-06-24T21:24:24.563Z",
+        "lastUpdated": "2026-06-24T21:33:04.882Z",
+        "gitCommitSha": "7b9458950d38bb01ddb48b669f9fa89bcdfd98b8"
+      }
+    ],
+    "superpowers@claude-plugins-official": [
+      {
+        "scope": "user",
+        "installPath": "/Users/kevinmarlow/.claude/plugins/cache/claude-plugins-official/superpowers/6.1.1",
+        "version": "6.1.1",
+        "installedAt": "2026-06-24T21:24:24.563Z",
+        "lastUpdated": "2026-07-06T03:48:55.653Z"
+      }
+    ]
+  }
+}

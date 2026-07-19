@@ -1,0 +1,38 @@
+# Unix
+alias ll="ls -al"
+alias ln="ln -v"
+alias mkdir="mkdir -p"
+alias e="$EDITOR"
+alias v="$VISUAL"
+
+# Pretty print the path
+alias path='echo $PATH | tr -s ":" "\n"'
+
+# Angel List AWS - Venture
+alias vlogin="aws sso login --profile angellist-venture-prod-engineer"
+alias vconsole="export AWS_PROFILE=angellist-venture-prod-engineer && aws eks update-kubeconfig --profile angellist-venture-prod-engineer --name zeus && ~/Development/ANGEL_LIST/venture/bin/konsolectl"
+
+# Location Shortcuts
+alias dl="cd ~/Downloads"
+alias dt="cd ~/Desktop"
+alias dev="cd ~/Development"
+alias aldev="cd ~/Development/ANGEL_LIST"
+
+# Redefine rm for safety
+alias rm='rm -i'
+
+# Use bat instead of cat
+alias cat='bat'
+
+# docker for the lazy
+alias dc="docker compose"
+
+# yt-dlp
+alias dl720="yt-dlp -S \"ext,height:720\""
+
+# AngelList Nova
+alias graphTest='just turbo test --filter=graph --only'
+
+
+alias claude='/Users/kevinmarlow/.local/bin/claude'
+alias cc='claude'
