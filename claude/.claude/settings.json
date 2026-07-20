@@ -78,8 +78,27 @@
       "mcp__user-github__search_code",
       "mcp__user-github__search_repositories",
       "mcp__user-github__search_users"
+    ],
+    "deny": [
+      "EnterPlanMode",
+      "ExitPlanMode",
+      "AskUserQuestion",
+      "ReportFindings",
+      "SendMessage",
+      "ScheduleWakeup",
+      "CronCreate",
+      "CronDelete",
+      "CronList",
+      "RemoteTrigger",
+      "PushNotification",
+      "DesignSync",
+      "NotebookEdit"
     ]
   },
+  "disableBundledSkills": true,
+  "disableWorkflows": true,
+  "disableRemoteControl": true,
+  "disableArtifact": true,
   "model": "sonnet",
   "hooks": {
     "PreToolUse": [
