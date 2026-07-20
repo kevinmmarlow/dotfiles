@@ -36,7 +36,7 @@ config.font = wezterm.font("Hack Nerd Font", { weight = "Regular" })
 
 config.enable_tab_bar = true
 config.hide_tab_bar_if_only_one_tab = false
-config.window_decorations = "RESIZE"
+config.window_decorations = "TITLE | RESIZE"
 config.window_frame = {
   font = wezterm.font("Hack Nerd Font", { weight = "Bold" }),
 }
@@ -69,10 +69,41 @@ local maximize_window = wezterm.action_callback(function(window, _pane)
   window:maximize()
 end)
 
+local function cycle_pane(direction)
+  return wezterm.action_callback(function(window, _pane)
+    local panes = window:active_tab():panes_with_info()
+    local active_idx
+    for i, p in ipairs(panes) do
+      if p.is_active then active_idx = i end
+    end
+    local next_idx = ((active_idx - 1 + direction) % #panes) + 1
+    panes[next_idx].pane:activate()
+  end)
+end
+
+local open_lazygit = wezterm.action_callback(function(window, pane)
+  local cwd_uri = pane:get_current_working_dir()
+  local cwd = cwd_uri and cwd_uri.file_path or wezterm.home_dir
+  window:perform_action(
+    action.SpawnCommandInNewTab({ args = { "/bin/zsh", "-l", "-c", "lazygit" }, cwd = cwd }),
+    pane
+  )
+end)
+
+local ANGELLIST_DIR = wezterm.home_dir .. "/Development/ANGEL_LIST"
+local open_angellist_layout = wezterm.action_callback(function(window, _pane)
+  local mux_window = window:mux_window()
+  local _tab, left, _win = mux_window:spawn_tab({ cwd = ANGELLIST_DIR })
+  local right_top = left:split({ direction = "Right", cwd = ANGELLIST_DIR, size = 0.5 })
+  right_top:split({ direction = "Bottom", cwd = ANGELLIST_DIR, size = 0.5 })
+end)
+
 config.leader = { key = "Space", mods = "CTRL" }
 config.keys = {
   { key = "m", mods = "CTRL|SHIFT", action = maximize_window },
   { key = "t", mods = "LEADER", action = action.SpawnTab("CurrentPaneDomain") },
+  { key = "a", mods = "LEADER", action = open_angellist_layout },
+  { key = "g", mods = "LEADER", action = open_lazygit },
   { key = "n", mods = "LEADER", action = action.SpawnWindow },
   { key = "d", mods = "LEADER", action = action.SplitPane({ direction = "Right" }) },
   { key = "d", mods = "LEADER|SHIFT", action = action.SplitPane({ direction = "Down" }) },
@@ -100,8 +131,8 @@ config.keys = {
   { key = "LeftArrow", mods = "OPT|SHIFT", action = action.SendString("\x1b[1;4D") },
   { key = "RightArrow", mods = "OPT|SHIFT", action = action.SendString("\x1b[1;4C") },
 
-  { key = "[", mods = "CMD", action = action.ActivatePaneDirection("Left") },
-  { key = "]", mods = "CMD", action = action.ActivatePaneDirection("Right") },
+  { key = "[", mods = "CMD", action = cycle_pane(-1) },
+  { key = "]", mods = "CMD", action = cycle_pane(1) },
   { key = "[", mods = "CMD|SHIFT", action = action.ActivateTabRelative(-1) },
   { key = "]", mods = "CMD|SHIFT", action = action.ActivateTabRelative(1) },
 }
