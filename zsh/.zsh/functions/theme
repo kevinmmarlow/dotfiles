@@ -1,19 +1,21 @@
-# Interactive terminal + prompt theme switcher.
+# Interactive terminal + prompt + editor theme switcher.
 #
-# Themes live in ~/.config/themes/{starship,wezterm}/ so adding or removing a
-# theme is just adding or removing a file — no code changes needed.
+# Themes live in ~/.config/themes/{starship,wezterm,nvim}/ so adding or
+# removing a theme is just adding or removing a file — no code changes needed.
 #
-#   theme                  interactive picker for both wezterm + starship
+#   theme                  interactive picker for wezterm + starship + nvim
 #   theme list             list available themes per tool
-#   theme <name>           set both tools to <name> (non-interactive)
+#   theme <name>           set all three to <name> (non-interactive)
 #   theme -s <name>        set starship only
 #   theme -w <name>        set wezterm only
+#   theme -n <name>        set nvim only
 
 function theme() {
   local themes_dir="$HOME/.config/themes"
   local current_file="$themes_dir/current"
   local starship_dir="$themes_dir/starship"
   local wezterm_dir="$themes_dir/wezterm"
+  local nvim_dir="$themes_dir/nvim"
   local starship_cfg="$HOME/.config/starship.toml"
   local marker="# ~~~ theme palette (managed by \`theme\`, do not edit below) ~~~"
 
@@ -96,16 +98,27 @@ function theme() {
     _theme_set_current wezterm "$name"
   }
 
+  _theme_apply_nvim() {
+    local name="$1"
+    if [[ ! -f "$nvim_dir/$name" ]]; then
+      echo "nvim theme '${name}' not found in $nvim_dir" >&2
+      return 1
+    fi
+    _theme_set_current nvim "$name"
+  }
+
   # --- subcommands ---
 
   # No args → interactive picker
   if (( $# == 0 )); then
     local cur_s; cur_s=$(_theme_current starship)
     local cur_w; cur_w=$(_theme_current wezterm)
+    local cur_n; cur_n=$(_theme_current nvim)
 
     echo "Current:"
     echo "  terminal (wezterm):  ${cur_w:-(not set)}"
     echo "  prompt   (starship): ${cur_s:-(not set)}"
+    echo "  editor   (nvim):     ${cur_n:-(not set)}"
     echo ""
 
     # Build wezterm choices
@@ -147,6 +160,26 @@ function theme() {
       echo "Invalid selection, try again."
     done
 
+    # Build nvim choices
+    local -a nv_themes
+    for f in "$nvim_dir"/*(N:t); do nv_themes+=("$f"); done
+    if (( ${#nv_themes} == 0 )); then
+      echo "No nvim themes found in $nvim_dir" >&2
+      return 1
+    fi
+    nv_themes+=("(keep current)")
+
+    echo ""
+    echo "Select editor (nvim) theme:"
+    local nv_pick=""
+    select choice in "${nv_themes[@]}"; do
+      if [[ -n "$choice" ]]; then
+        nv_pick="$choice"
+        break
+      fi
+      echo "Invalid selection, try again."
+    done
+
     echo ""
 
     if [[ "$wt_pick" != "(keep current)" ]]; then
@@ -163,6 +196,13 @@ function theme() {
       echo "prompt   → (unchanged)"
     fi
 
+    if [[ "$nv_pick" != "(keep current)" ]]; then
+      _theme_apply_nvim "$nv_pick" || return 1
+      echo "editor   → $nv_pick"
+    else
+      echo "editor   → (unchanged)"
+    fi
+
     return 0
   fi
 
@@ -170,6 +210,7 @@ function theme() {
   if [[ "$1" == "list" ]]; then
     local cur_s; cur_s=$(_theme_current starship)
     local cur_w; cur_w=$(_theme_current wezterm)
+    local cur_n; cur_n=$(_theme_current nvim)
 
     echo "Starship themes (prompt):"
     for f in "$starship_dir"/*.toml(N:t:r); do
@@ -189,21 +230,32 @@ function theme() {
         echo "  $f"
       fi
     done
+
+    echo ""
+    echo "Nvim themes (editor):"
+    for f in "$nvim_dir"/*(N:t); do
+      if [[ "$f" == "$cur_n" ]]; then
+        echo "  $f  ← active"
+      else
+        echo "  $f"
+      fi
+    done
     return 0
   fi
 
   # Flagged or positional usage
-  local mode="both" name=""
+  local mode="all" name=""
   while (( $# )); do
     case "$1" in
       -s) mode="starship"; shift ;;
       -w) mode="wezterm";  shift ;;
+      -n) mode="nvim";     shift ;;
       *)  name="$1";       shift ;;
     esac
   done
 
   if [[ -z "$name" ]]; then
-    echo "usage: theme [-s|-w] <name>" >&2
+    echo "usage: theme [-s|-w|-n] <name>" >&2
     return 1
   fi
 
@@ -216,11 +268,17 @@ function theme() {
       _theme_apply_wezterm "$name" || return 1
       echo "terminal → $name"
       ;;
-    both)
+    nvim)
+      _theme_apply_nvim "$name" || return 1
+      echo "editor   → $name"
+      ;;
+    all)
       _theme_apply_starship "$name" || return 1
       _theme_apply_wezterm "$name"  || return 1
+      _theme_apply_nvim "$name"     || return 1
       echo "prompt   → $name"
       echo "terminal → $name"
+      echo "editor   → $name"
       ;;
   esac
 }
