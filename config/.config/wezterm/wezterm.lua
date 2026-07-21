@@ -46,6 +46,31 @@ config.inactive_pane_hsb = {
   brightness = 0.8,
 }
 
+-- CMD+click opens the file under the cursor in its macOS default app.
+-- Bare paths aren't hyperlinks by default, only URL-like schemes are, so
+-- wrap anything path-shaped as a file:// URI; opening that shells out to
+-- `open`, which macOS resolves to the default app for that file type.
+config.hyperlink_rules = wezterm.default_hyperlink_rules()
+table.insert(config.hyperlink_rules, {
+  regex = [[(?:~|\.\.?)?/[\w./\-]+]],
+  format = "file://$0",
+})
+
+config.mouse_bindings = {
+  {
+    event = { Up = { streak = 1, button = "Left" } },
+    mods = "CMD",
+    action = action.OpenLinkAtMouseCursor,
+  },
+  -- suppress the default click behavior on the matching Down event so it
+  -- doesn't also move the cursor / start a selection
+  {
+    event = { Down = { streak = 1, button = "Left" } },
+    mods = "CMD",
+    action = action.Nop,
+  },
+}
+
 if is_windows then
   config.win32_system_backdrop = "Acrylic"
   config.window_background_opacity = 0.7
