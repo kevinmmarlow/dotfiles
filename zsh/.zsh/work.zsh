@@ -43,12 +43,12 @@ _al_console_kitty_alert() {
   [[ -f "$alert_theme" ]] || return 0
 
   local match="id:$KITTY_WINDOW_ID"
-  kitty @ set-colors --no-response -m "$match" "$alert_theme"
+  kitty @ set-colors -m "$match" "$alert_theme"
   kitty @ set-window-logo --no-response -m "$match" \
     --position bottom-right --alpha 0.35 \
     "$HOME/.config/kitty/logos/${label:l}.png"
-  kitty @ set-tab-title --no-response "$label | ${PWD:t}"
-  kitty @ set-user-vars --no-response -m "$match" "AL_CONSOLE_ENV=$env"
+  kitty @ set-tab-title "$label | ${PWD:t}"
+  kitty @ set-user-vars -m "$match" "AL_CONSOLE_ENV=$env"
 
   _al_console_kitty_active=1
 }
@@ -61,9 +61,9 @@ _al_console_kitty_clear() {
 
   local match="id:$KITTY_WINDOW_ID"
   # Not --reset: that flag implies --all and would reset every window.
-  kitty @ set-colors --no-response -m "$match" "$HOME/.config/kitty/current-theme.conf"
+  kitty @ set-colors -m "$match" "$HOME/.config/kitty/current-theme.conf"
   kitty @ set-window-logo --no-response -m "$match" none
-  kitty @ set-user-vars --no-response -m "$match" "AL_CONSOLE_ENV="
+  kitty @ set-user-vars -m "$match" "AL_CONSOLE_ENV="
 }
 
 _al_console_preexec() {
