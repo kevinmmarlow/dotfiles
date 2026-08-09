@@ -1,8 +1,3 @@
-# Launch a named Kitty workspace from ~/.config/kitty/sessions/.
-#
-#   kws            list available workspaces
-#   kws <name>     open <name> in a new OS window
-#
 # Adding a workspace is adding a file, matching how ~/.config/themes/ works.
 
 function kws() {
