@@ -1,0 +1,27 @@
+# Launch a named Kitty workspace from ~/.config/kitty/sessions/.
+#
+#   kws            list available workspaces
+#   kws <name>     open <name> in a new OS window
+#
+# Adding a workspace is adding a file, matching how ~/.config/themes/ works.
+
+function kws() {
+  local sessions_dir="$HOME/.config/kitty/sessions"
+  local name="$1"
+
+  if [[ -z "$name" ]]; then
+    echo "usage: kws <name>" >&2
+    echo "available:" >&2
+    for f in "$sessions_dir"/*.conf(N:t:r); do echo "  $f" >&2; done
+    return 1
+  fi
+
+  local session="$sessions_dir/${name}.conf"
+  if [[ ! -f "$session" ]]; then
+    echo "no workspace '${name}' in $sessions_dir" >&2
+    return 1
+  fi
+
+  # `open -na` so this returns immediately and the window survives this shell.
+  open -na kitty --args --session "$session"
+}
