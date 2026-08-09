@@ -95,11 +95,8 @@
       "NotebookEdit"
     ]
   },
+  "model": "opus[1m]",
   "disableBundledSkills": true,
-  "disableWorkflows": true,
-  "disableRemoteControl": true,
-  "disableArtifact": true,
-  "model": "sonnet",
   "hooks": {
     "PreToolUse": [
       {
@@ -121,10 +118,14 @@
       }
     ]
   },
+  "disableRemoteControl": true,
+  "disableWorkflows": true,
+  "disableArtifact": true,
   "statusLine": {
     "type": "command",
     "command": "bash ~/.claude/statusline-wrapper.sh"
   },
+  "cleanupPeriodDays": 14,
   "enabledPlugins": {
     "codex@openai-codex": false,
     "figma@claude-plugins-official": false,
@@ -153,5 +154,6 @@
       }
     }
   },
-  "tui": "fullscreen"
+  "tui": "fullscreen",
+  "theme": "dark"
 }
