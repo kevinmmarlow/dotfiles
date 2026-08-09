@@ -1,12 +1,13 @@
 # Interactive terminal + prompt + editor theme switcher.
 #
-# Themes live in ~/.config/themes/{starship,wezterm,nvim}/ so adding or
+# Themes live in ~/.config/themes/{starship,kitty,wezterm,nvim}/ so adding or
 # removing a theme is just adding or removing a file — no code changes needed.
 #
-#   theme                  interactive picker for wezterm + starship + nvim
+#   theme                  interactive picker for every tool
 #   theme list             list available themes per tool
-#   theme <name>           set all three to <name> (non-interactive)
+#   theme <name>           set all four to <name> (non-interactive)
 #   theme -s <name>        set starship only
+#   theme -k <name>        set kitty only
 #   theme -w <name>        set wezterm only
 #   theme -n <name>        set nvim only
 
@@ -16,6 +17,8 @@ function theme() {
   local starship_dir="$themes_dir/starship"
   local wezterm_dir="$themes_dir/wezterm"
   local nvim_dir="$themes_dir/nvim"
+  local kitty_dir="$themes_dir/kitty"
+  local kitty_link="$HOME/.config/kitty/current-theme.conf"
   local starship_cfg="$HOME/.config/starship.toml"
   local marker="# ~~~ theme palette (managed by \`theme\`, do not edit below) ~~~"
 
@@ -98,6 +101,20 @@ function theme() {
     _theme_set_current wezterm "$name"
   }
 
+  _theme_apply_kitty() {
+    local name="$1"
+    if [[ ! -f "$kitty_dir/${name}.conf" ]]; then
+      echo "kitty theme '${name}' not found in $kitty_dir" >&2
+      return 1
+    fi
+    ln -sfn "$kitty_dir/${name}.conf" "$kitty_link"
+    # Kitty does not watch its config, unlike WezTerm. Push the colors live.
+    # --configured so new windows and `set-colors --reset` use them too.
+    command -v kitty >/dev/null && \
+      kitty @ set-colors --all --configured "$kitty_link" 2>/dev/null
+    _theme_set_current kitty "$name"
+  }
+
   _theme_apply_nvim() {
     local name="$1"
     if [[ ! -f "$nvim_dir/$name" ]]; then
@@ -112,14 +129,38 @@ function theme() {
   # No args → interactive picker
   if (( $# == 0 )); then
     local cur_s; cur_s=$(_theme_current starship)
+    local cur_k; cur_k=$(_theme_current kitty)
     local cur_w; cur_w=$(_theme_current wezterm)
     local cur_n; cur_n=$(_theme_current nvim)
 
     echo "Current:"
+    echo "  terminal (kitty):    ${cur_k:-(not set)}"
     echo "  terminal (wezterm):  ${cur_w:-(not set)}"
     echo "  prompt   (starship): ${cur_s:-(not set)}"
     echo "  editor   (nvim):     ${cur_n:-(not set)}"
     echo ""
+
+    # Build kitty choices
+    local -a kt_themes
+    for f in "$kitty_dir"/*.conf(N:t:r); do
+      [[ "$f" == *.alert ]] && continue
+      kt_themes+=("$f")
+    done
+    if (( ${#kt_themes} == 0 )); then
+      echo "No kitty themes found in $kitty_dir" >&2
+      return 1
+    fi
+    kt_themes+=("(keep current)")
+
+    echo "Select terminal (kitty) theme:"
+    local kt_pick=""
+    select choice in "${kt_themes[@]}"; do
+      if [[ -n "$choice" ]]; then
+        kt_pick="$choice"
+        break
+      fi
+      echo "Invalid selection, try again."
+    done
 
     # Build wezterm choices
     local -a wt_themes
@@ -130,6 +171,7 @@ function theme() {
     fi
     wt_themes+=("(keep current)")
 
+    echo ""
     echo "Select terminal (wezterm) theme:"
     local wt_pick=""
     select choice in "${wt_themes[@]}"; do
@@ -182,6 +224,13 @@ function theme() {
 
     echo ""
 
+    if [[ "$kt_pick" != "(keep current)" ]]; then
+      _theme_apply_kitty "$kt_pick" || return 1
+      echo "terminal → $kt_pick (kitty)"
+    else
+      echo "terminal → (unchanged, kitty)"
+    fi
+
     if [[ "$wt_pick" != "(keep current)" ]]; then
       _theme_apply_wezterm "$wt_pick" || return 1
       echo "terminal → $wt_pick"
@@ -209,6 +258,7 @@ function theme() {
   # list
   if [[ "$1" == "list" ]]; then
     local cur_s; cur_s=$(_theme_current starship)
+    local cur_k; cur_k=$(_theme_current kitty)
     local cur_w; cur_w=$(_theme_current wezterm)
     local cur_n; cur_n=$(_theme_current nvim)
 
@@ -221,6 +271,16 @@ function theme() {
       fi
     done
 
+    echo ""
+    echo "Kitty themes (terminal):"
+    for f in "$kitty_dir"/*.conf(N:t:r); do
+      [[ "$f" == *.alert ]] && continue
+      if [[ "$f" == "$cur_k" ]]; then
+        echo "  $f  ← active"
+      else
+        echo "  $f"
+      fi
+    done
     echo ""
     echo "WezTerm themes (terminal):"
     for f in "$wezterm_dir"/*(N:t); do
@@ -248,6 +308,7 @@ function theme() {
   while (( $# )); do
     case "$1" in
       -s) mode="starship"; shift ;;
+      -k) mode="kitty";    shift ;;
       -w) mode="wezterm";  shift ;;
       -n) mode="nvim";     shift ;;
       *)  name="$1";       shift ;;
@@ -255,7 +316,7 @@ function theme() {
   done
 
   if [[ -z "$name" ]]; then
-    echo "usage: theme [-s|-w|-n] <name>" >&2
+    echo "usage: theme [-s|-k|-w|-n] <name>" >&2
     return 1
   fi
 
@@ -263,6 +324,10 @@ function theme() {
     starship)
       _theme_apply_starship "$name" || return 1
       echo "prompt   → $name"
+      ;;
+    kitty)
+      _theme_apply_kitty "$name" || return 1
+      echo "terminal → $name (kitty)"
       ;;
     wezterm)
       _theme_apply_wezterm "$name" || return 1
@@ -274,6 +339,7 @@ function theme() {
       ;;
     all)
       _theme_apply_starship "$name" || return 1
+      _theme_apply_kitty "$name"    || return 1
       _theme_apply_wezterm "$name"  || return 1
       _theme_apply_nvim "$name"     || return 1
       echo "prompt   → $name"
