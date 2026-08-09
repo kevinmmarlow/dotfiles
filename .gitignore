@@ -17,5 +17,8 @@ claude/.claude/settings.local.json
 # Theme state: which theme is currently active (per machine)
 config/.config/themes/current
 
+# Kitty active theme: a symlink into themes/kitty/, repointed by `theme -k`
+config/.config/kitty/current-theme.conf
+
 # zsh compiled completion dumps
 .zcompdump*

@@ -29,8 +29,9 @@ brew "stow"                      # symlinks packages into $HOME
 brew "jq"                        # used by bin/refresh-secrets
 brew "1password-cli"             # `op`; refresh-secrets reads secrets from it
 
+cask "kitty"
 cask "wezterm"
-cask "font-hack-nerd-font"       # wezterm.lua + window frame font
+cask "font-hack-nerd-font"       # wezterm.lua + kitty.conf font
 
 # Not managed here (install manually if missing):
 #   - 1Password desktop app (git SSH signing agent; see ~/.gitconfig gpg.ssh.program)
