@@ -11,15 +11,59 @@ export AWS_PROFILE=angellist-venture-prod-engineer
 # `al` CLI completions (guarded so a machine without `al` doesn't error)
 command -v al >/dev/null && source <(al completion zsh)
 
-# Flags `al console` prod/staging sessions for WezTerm (see wezterm.lua) via OSC
-# 1337 SetUserVar. WezTerm reads this per-pane and swaps the window color scheme
-# to a light/contrasting theme so the dangerous session is unmissable.
+# Flags `al console` prod/staging sessions in both terminals. WezTerm reads the
+# OSC 1337 user var and swaps the whole window's color scheme. Kitty is driven
+# directly over remote control, scoped to the one split.
 #
-# The OSC var is set in preexec (before the command runs) so WezTerm can swap
-# immediately, and cleared in precmd (when the prompt returns after the session ends).
+# Set in preexec (before the command runs) so the swap lands immediately, and
+# cleared in precmd (when the prompt returns after the session ends).
 
 _al_console_set_uservar() {
   printf "\033]1337;SetUserVar=%s=%s\007" "$1" "$(printf "%s" "$2" | base64 | tr -d '\n')"
+}
+
+# Kitty path. WezTerm recolored the whole window, because its config overrides
+# are per-window. Kitty scopes to the one split via -m id:$KITTY_WINDOW_ID, so
+# neighbouring panes keep their normal colors.
+_al_console_kitty_active=""
+
+_al_console_kitty_alert() {
+  local env="$1" label
+  [[ -n "$KITTY_WINDOW_ID" ]] || return 0
+
+  case "$env" in
+    prod)    label="DANGER" ;;
+    staging) label="CAUTION" ;;
+    *)       return 0 ;;
+  esac
+
+  local theme_name alert_theme
+  theme_name=$(sed -n 's/^kitty=//p' "$HOME/.config/themes/current")
+  alert_theme="$HOME/.config/themes/kitty/${theme_name}.alert.conf"
+  [[ -f "$alert_theme" ]] || return 0
+
+  local match="id:$KITTY_WINDOW_ID"
+  kitty @ set-colors --no-response -m "$match" "$alert_theme"
+  kitty @ set-window-logo --no-response -m "$match" \
+    --position bottom-right --alpha 0.35 \
+    "$HOME/.config/kitty/logos/${label:l}.png"
+  kitty @ set-tab-title --no-response "$label | ${PWD:t}"
+  kitty @ set-user-vars --no-response -m "$match" "AL_CONSOLE_ENV=$env"
+
+  _al_console_kitty_active=1
+}
+
+_al_console_kitty_clear() {
+  # Guarded: precmd fires on every prompt, and each `kitty @` is a socket
+  # round trip.
+  [[ -n "$_al_console_kitty_active" ]] || return 0
+  _al_console_kitty_active=""
+
+  local match="id:$KITTY_WINDOW_ID"
+  # Not --reset: that flag implies --all and would reset every window.
+  kitty @ set-colors --no-response -m "$match" "$HOME/.config/kitty/current-theme.conf"
+  kitty @ set-window-logo --no-response -m "$match" none
+  kitty @ set-user-vars --no-response -m "$match" "AL_CONSOLE_ENV="
 }
 
 _al_console_preexec() {
@@ -44,12 +88,14 @@ _al_console_preexec() {
   case "$env" in
     prod|staging)
       _al_console_set_uservar AL_CONSOLE_ENV "$env"
+      _al_console_kitty_alert "$env"
       ;;
   esac
 }
 
 _al_console_precmd() {
   _al_console_set_uservar AL_CONSOLE_ENV ""
+  _al_console_kitty_clear
 }
 
 autoload -Uz add-zsh-hook
