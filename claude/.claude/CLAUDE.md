@@ -1,8 +1,17 @@
-Be extremely concise everywhere — interactions, commits, PR descriptions, plans. Sacrifice grammar for concision.
+Use concise ASD-STE100 Simplified Technical English everywhere: interactions, commits, PR descriptions, plans, docs.
 
-# Writing Style
+# Writing Style (STE + Concision)
 
-- NEVER use em dashes (—) in any writing: outputs, code comments, commits, PRs, docs. Use commas, colons, parens, or separate sentences instead.
+- Max 20 words per sentence in instructions. Max 25 in descriptive text.
+- Complete grammatical sentences, but as short as possible. Do not omit subjects or verbs.
+- Active voice. Name the actor. Passive only when the actor is unknown.
+- Simple verb tenses only: imperative, simple present, simple past, simple future ("will"), infinitive.
+- No progressive ("-ing" as verb), no perfect tenses, no complex modals.
+- No filler (just, really, basically, simply, actually). No hedging (might, could possibly, seems like).
+- One instruction per sentence. One topic per paragraph.
+- Lists over prose. Numbered for sequences, bullets for unordered sets.
+- Start instructions with the action verb.
+- NEVER use em dashes in any writing. Use commas, colons, parens, or separate sentences.
 
 # Code Style
 

@@ -36,6 +36,8 @@ config.font = wezterm.font("Hack Nerd Font", { weight = "Regular" })
 
 config.enable_tab_bar = true
 config.hide_tab_bar_if_only_one_tab = false
+-- raised from the default 16 so TAB_MIN_WIDTH padding isn't truncated back down
+config.tab_max_width = 32
 config.window_decorations = "TITLE | RESIZE"
 config.window_frame = {
   font = wezterm.font("Hack Nerd Font", { weight = "Bold" }),
@@ -51,9 +53,19 @@ config.inactive_pane_hsb = {
 -- wrap anything path-shaped as a file:// URI; opening that shells out to
 -- `open`, which macOS resolves to the default app for that file type.
 config.hyperlink_rules = wezterm.default_hyperlink_rules()
+-- Earlier rules claim overlapping ranges, so the default URL rules keep real URLs,
+-- and the ~ rule must precede the absolute-path rule.
+-- file:// has no notion of ~, so expand it: "file://~/x" parses ~ as the hostname.
 table.insert(config.hyperlink_rules, {
-  regex = [[(?:~|\.\.?)?/[\w./\-]+]],
-  format = "file://$0",
+  regex = [[(?:^|[\s"'(\[])~(/[\w./\-]+)]],
+  format = "file://" .. wezterm.home_dir .. "$1",
+})
+-- Absolute only: a relative path needs the pane cwd, which a static format can't
+-- reach. The regex crate has no lookbehind, so match a leading delimiter and keep
+-- only the path in $1; without it "src/index.ts" resolves to /index.ts.
+table.insert(config.hyperlink_rules, {
+  regex = [[(?:^|[\s"'(\[])(/[\w./\-]+)]],
+  format = "file://$1",
 })
 
 config.mouse_bindings = {
@@ -68,6 +80,25 @@ config.mouse_bindings = {
     event = { Down = { streak = 1, button = "Left" } },
     mods = "CMD",
     action = action.Nop,
+  },
+  -- macOS convention: selecting text shouldn't clobber the clipboard on its
+  -- own. Default binds these to CompleteSelectionOrOpenLinkAtMouseCursor /
+  -- CompleteSelection with ClipboardAndPrimarySelection, which copies on
+  -- every click-release. Cmd+C (default keybinding) still copies explicitly.
+  {
+    event = { Up = { streak = 1, button = "Left" } },
+    mods = "NONE",
+    action = action.CompleteSelection("PrimarySelection"),
+  },
+  {
+    event = { Up = { streak = 2, button = "Left" } },
+    mods = "NONE",
+    action = action.CompleteSelection("PrimarySelection"),
+  },
+  {
+    event = { Up = { streak = 3, button = "Left" } },
+    mods = "NONE",
+    action = action.CompleteSelection("PrimarySelection"),
   },
 }
 
@@ -106,6 +137,15 @@ local function cycle_pane(direction)
   end)
 end
 
+local rename_tab = action.PromptInputLine({
+  description = "New tab name:",
+  action = wezterm.action_callback(function(window, _pane, line)
+    if line then
+      window:active_tab():set_title(line)
+    end
+  end),
+})
+
 local open_lazygit = wezterm.action_callback(function(window, pane)
   local cwd_uri = pane:get_current_working_dir()
   local cwd = cwd_uri and cwd_uri.file_path or wezterm.home_dir
@@ -127,11 +167,12 @@ config.leader = { key = "Space", mods = "CTRL" }
 config.keys = {
   { key = "m", mods = "CTRL|SHIFT", action = maximize_window },
   { key = "t", mods = "LEADER", action = action.SpawnTab("CurrentPaneDomain") },
+  { key = "r", mods = "LEADER", action = rename_tab },
   { key = "a", mods = "LEADER", action = open_angellist_layout },
   { key = "g", mods = "LEADER", action = open_lazygit },
   { key = "n", mods = "LEADER", action = action.SpawnWindow },
-  { key = "d", mods = "LEADER", action = action.SplitPane({ direction = "Right" }) },
-  { key = "d", mods = "LEADER|SHIFT", action = action.SplitPane({ direction = "Down" }) },
+  { key = "\\", mods = "LEADER", action = action.SplitPane({ direction = "Right" }) },
+  { key = "-", mods = "LEADER", action = action.SplitPane({ direction = "Down" }) },
   { key = "x", mods = "LEADER", action = action.CloseCurrentPane({ confirm = true }) },
   { key = "w", mods = "LEADER", action = action.ShowTabNavigator },
   { key = "p", mods = "LEADER", action = action.ActivateCommandPalette },
@@ -201,12 +242,25 @@ wezterm.on("update-right-status", function(window, pane)
   end
 end)
 
-wezterm.on("format-tab-title", function(tab)
+-- WezTerm has tab_max_width but no minimum, so short titles are center-padded here
+local TAB_MIN_WIDTH = 20
+
+local function pad_to_min_width(text, min_width)
+  -- column_width, not #text: titles can contain wide/multibyte glyphs
+  local pad = min_width - wezterm.column_width(text)
+  if pad <= 0 then return text end
+  local left = math.floor(pad / 2)
+  return string.rep(" ", left) .. text .. string.rep(" ", pad - left)
+end
+
+wezterm.on("format-tab-title", function(tab, _tabs, _panes, _config, _hover, max_width)
+  -- tab_title is empty unless explicitly renamed; only then does it win over the live pane title
+  local title = (tab.tab_title and #tab.tab_title > 0) and tab.tab_title or tab.active_pane.title
   local env = tab.active_pane.user_vars.AL_CONSOLE_ENV
   if AL_ENV_LABELS[env] then
-    return " " .. AL_ENV_LABELS[env] .. " | " .. tab.active_pane.title .. " "
+    title = " " .. AL_ENV_LABELS[env] .. " | " .. title .. " "
   end
-  return tab.active_pane.title
+  return pad_to_min_width(title, math.min(TAB_MIN_WIDTH, max_width))
 end)
 
 return config
