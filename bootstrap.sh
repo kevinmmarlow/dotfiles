@@ -33,6 +33,10 @@ if [[ ! -d "$HOME/.oh-my-zsh" ]]; then
 fi
 
 # --- Stow: back up any conflicting real file, then symlink packages into $HOME ---
+# mkdir first: stow folds a directory into one symlink when the target is
+# missing, which would put the kitty theme link (below) inside the repo.
+mkdir -p "$HOME/.config/kitty"
+
 stow_package() {
   local pkg="$1"
   while IFS= read -r -d '' file; do
@@ -49,6 +53,14 @@ stow_package() {
 
 log "Stowing packages: ${PACKAGES[*]}"
 for pkg in "${PACKAGES[@]}"; do stow_package "$pkg"; done
+
+# --- Kitty active theme ---
+# kitty.conf includes current-theme.conf, which is gitignored and per-machine.
+KITTY_THEME="$(sed -n 's/^kitty=//p' "$HOME/.config/themes/current" 2>/dev/null || true)"
+KITTY_THEME="${KITTY_THEME:-kanagawa-wave}"
+log "Linking kitty theme: $KITTY_THEME"
+ln -sfn "$HOME/.config/themes/kitty/${KITTY_THEME}.conf" \
+        "$HOME/.config/kitty/current-theme.conf"
 
 # --- Skills fork (source of truth for ~/.claude/skills + ~/.agents/skills) ---
 if [[ ! -d "$SKILLS_DIR/.git" ]]; then
