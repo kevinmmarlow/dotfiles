@@ -62,6 +62,15 @@ log "Linking kitty theme: $KITTY_THEME"
 ln -sfn "$HOME/.config/themes/kitty/${KITTY_THEME}.conf" \
         "$HOME/.config/kitty/current-theme.conf"
 
+# Seed the kitty= key so the al-console alert has a theme name on a fresh
+# machine, where ~/.config/themes/current does not exist yet.
+mkdir -p "$HOME/.config/themes"
+touch "$HOME/.config/themes/current"
+if ! grep -q '^kitty=' "$HOME/.config/themes/current"; then
+  log "Seeding kitty=$KITTY_THEME in $HOME/.config/themes/current"
+  printf 'kitty=%s\n' "$KITTY_THEME" >> "$HOME/.config/themes/current"
+fi
+
 # --- Skills fork (source of truth for ~/.claude/skills + ~/.agents/skills) ---
 if [[ ! -d "$SKILLS_DIR/.git" ]]; then
   log "Cloning skills fork -> $SKILLS_DIR"

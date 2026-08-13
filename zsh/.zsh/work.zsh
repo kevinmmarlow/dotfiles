@@ -43,12 +43,18 @@ _al_console_kitty_alert() {
   [[ -f "$alert_theme" ]] || return 0
 
   local match="id:$KITTY_WINDOW_ID"
-  kitty @ set-colors -m "$match" "$alert_theme"
+  local rc=0
+  kitty @ set-colors -m "$match" "$alert_theme" || rc=1
   kitty @ set-window-logo --no-response -m "$match" \
     --position bottom-right --alpha 0.35 \
-    "$HOME/.config/kitty/logos/${label:l}.png"
-  kitty @ set-tab-title "$label | ${PWD:t}"
-  kitty @ set-user-vars -m "$match" "AL_CONSOLE_ENV=$env"
+    "$HOME/.config/kitty/logos/${label:l}.png" || rc=1
+  kitty @ set-tab-title "$label | ${PWD:t}" || rc=1
+  kitty @ set-user-vars -m "$match" "AL_CONSOLE_ENV=$env" || rc=1
+
+  if (( rc )); then
+    echo "al console: kitty alert failed, no visual warning applied" >&2
+    return 0
+  fi
 
   _al_console_kitty_active=1
 }
@@ -60,10 +66,15 @@ _al_console_kitty_clear() {
   _al_console_kitty_active=""
 
   local match="id:$KITTY_WINDOW_ID"
+  local rc=0
   # Not --reset: that flag implies --all and would reset every window.
-  kitty @ set-colors -m "$match" "$HOME/.config/kitty/current-theme.conf"
-  kitty @ set-window-logo --no-response -m "$match" none
-  kitty @ set-user-vars -m "$match" "AL_CONSOLE_ENV="
+  kitty @ set-colors -m "$match" "$HOME/.config/kitty/current-theme.conf" || rc=1
+  kitty @ set-window-logo --no-response -m "$match" none || rc=1
+  kitty @ set-user-vars -m "$match" "AL_CONSOLE_ENV=" || rc=1
+
+  if (( rc )); then
+    echo "al console: kitty clear failed, alert visuals may persist" >&2
+  fi
 }
 
 _al_console_preexec() {
