@@ -4,7 +4,7 @@
 #
 #   ~/.dotfiles/bootstrap.sh
 #
-# Steps: Homebrew -> brew bundle -> Oh My Zsh -> stow -> skills fork -> secrets.
+# Steps: Homebrew -> brew bundle -> Oh My Zsh -> stow -> seeds -> skills fork -> secrets.
 
 set -euo pipefail
 
@@ -14,7 +14,25 @@ SKILLS_REPO="git@github.com:kevinmmarlow/mp_skills.git"
 SKILLS_DIR="$HOME/Development/claude/skills"
 PACKAGES=(zsh git config claude)
 
+# Files their own app rewrites in place. A stow symlink there gets replaced by a
+# real file, and every later restow then aborts for the whole package. So stow
+# skips them (see each package's .stow-local-ignore) and we copy them once, when
+# absent. A live file is never overwritten. Paths are relative to $HOME.
+SEEDS=(
+  ".config/starship.toml"
+  ".claude/plugins/installed_plugins.json"
+  ".claude/plugins/known_marketplaces.json"
+)
+
 log() { printf '\033[1;34m==>\033[0m %s\n' "$*"; }
+
+is_seed() {
+  local rel="$1" seed
+  for seed in "${SEEDS[@]}"; do
+    [[ "$rel" == "$seed" ]] && return 0
+  done
+  return 1
+}
 
 # --- Homebrew ---
 if ! command -v brew >/dev/null; then
@@ -42,6 +60,11 @@ stow_package() {
   while IFS= read -r -d '' file; do
     local rel="${file#"$DOTFILES/$pkg/"}"
     local target="$HOME/$rel"
+    # Seeds are real files by design. Backing one up would move the live config
+    # aside on every run, and deploy_seeds would then rewrite it from the seed.
+    if is_seed "$rel"; then
+      continue
+    fi
     if [[ -e "$target" && ! -L "$target" ]]; then
       mkdir -p "$BACKUP/$(dirname "$rel")"
       mv "$target" "$BACKUP/$rel"
@@ -53,6 +76,33 @@ stow_package() {
 
 log "Stowing packages: ${PACKAGES[*]}"
 for pkg in "${PACKAGES[@]}"; do stow_package "$pkg"; done
+
+# --- Seeds: copy-once files that stow deliberately skips ---
+# Runs after stow, which creates the directory structure these land in.
+deploy_seeds() {
+  local rel target src pkg
+  for rel in "${SEEDS[@]}"; do
+    src=""
+    for pkg in "${PACKAGES[@]}"; do
+      if [[ -f "$DOTFILES/$pkg/$rel" ]]; then src="$DOTFILES/$pkg/$rel"; break; fi
+    done
+    if [[ -z "$src" ]]; then
+      log "no seed in repo for $rel, skipping"
+      continue
+    fi
+    target="$HOME/$rel"
+    if [[ -e "$target" ]]; then
+      log "seed exists, leaving live copy: $target"
+    else
+      mkdir -p "$(dirname "$target")"
+      cp "$src" "$target"
+      log "seeded $target"
+    fi
+  done
+}
+
+log "Deploying seeds"
+deploy_seeds
 
 # --- Kitty active theme ---
 # kitty.conf includes current-theme.conf, which is gitignored and per-machine.

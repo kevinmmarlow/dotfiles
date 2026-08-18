@@ -21,7 +21,7 @@ $time\
 [](fg:lavender)\
 $line_break$character"""
 
-palette = 'catppuccin_mocha'
+palette = 'kanagawa_wave'
 
 [os]
 disabled = false
@@ -93,12 +93,12 @@ error_symbol = '[❯](bold fg:red)'
 vimcmd_symbol = '[❮](bold fg:green)'
 
 # ~~~ theme palette (managed by `theme`, do not edit below) ~~~
-[palettes.catppuccin_mocha]
-red = "#f38ba8"
-peach = "#fab387"
-yellow = "#f9e2af"
-green = "#a6e3a1"
-sapphire = "#74c7ec"
-lavender = "#b4befe"
-text = "#cdd6f4"
-crust = "#11111b"
+[palettes.kanagawa_wave]
+red = "#E46876"
+peach = "#FFA066"
+yellow = "#E6C384"
+green = "#98BB6C"
+sapphire = "#7E9CD8"
+lavender = "#957FB8"
+text = "#DCD7BA"
+crust = "#16161D"
