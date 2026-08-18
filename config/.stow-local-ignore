@@ -1,0 +1,23 @@
+# starship rewrites starship.toml in place when `theme` switches palettes, which
+# replaces a stow symlink with a real file and then aborts every later restow.
+# bootstrap.sh seeds it instead. Keep this list in sync with SEEDS there.
+^/\.config/starship\.toml$
+
+# A custom ignore file replaces stow's built-in list, so carry it forward.
+RCS
+.+,v
+CVS
+\.\#.+
+\.cvsignore
+\.svn
+_darcs
+\.hg
+\.git
+\.gitignore
+\.gitmodules
+.+~
+\#.*\#
+\.DS_Store
+^/README.*
+^/LICENSE.*
+^/COPYING
