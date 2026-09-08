@@ -155,5 +155,33 @@
     }
   },
   "tui": "fullscreen",
-  "theme": "dark"
+  "theme": "dark",
+  "autoMode": {
+    "environment": [
+      "### Org-wide",
+      "**Organization**: None configured",
+      "**Cloud provider(s)**: Cloudflare (Workers static assets, D1 database) — per this repo's README and wrangler.jsonc",
+      "**Repository visibility**: PRIVATE — kevinmmarlow/mahtr_static_site",
+      "**Internal sharing / snippet hosting**: None configured — treat public paste/gist services as outside the trust boundary",
+      "**Secrets management**: None configured",
+      "**Default / protected branches**: default branch unknown (origin/HEAD unset); Protected branches: none listed; Rulesets: not queryable here — treat as possibly protected despite the empty listing",
+      "**CI/CD deploy targets**: Cloudflare Workers via `npm run deploy` (wrangler) — this repo only",
+      "**Network posture**: None configured",
+      "**Source control**: The trusted repo (kevinmmarlow/mahtr_static_site) and its origin remote only (github.com:kevinmmarlow/mahtr_static_site.git) — no additional orgs configured",
+      "**Trusted internal domains**: None configured",
+      "**Trusted cloud buckets**: None configured",
+      "**Key internal services**: None configured",
+      "**Internal package registry**: None configured",
+      "**Sensitive data locations & audiences**: `.env`, `.env.production`, and an unusual-named ignored file in this repo hold credentials/config — treat as secrets; any file or store holding personal data, confidential business data, credentials, regulated data, or similarly sensitive material; share only with audiences cleared at the [named+specifics] bar",
+      "**Data retention / declassification**: None configured",
+      "**Sensitive remote targets**: any namespace, host, or container whose name carries `prod` or `production` as a whole word or name segment (e.g. `.env.production`, prod D1/Workers environments in this repo)",
+      "**Protected deployment namespaces / environments**: None configured — fall back to the Sensitive remote targets heuristic",
+      "**Protected IaC scopes**: IAM, RBAC, networking, quota, and node-pool resources; anything whose name or tag carries `prod` or `production` as a whole word or name segment",
+      "### User-specific",
+      "**Primary use of Claude Code**: software development — static site (Astro) + Cloudflare Workers/D1 project, routine under kmarlow/ branch prefix",
+      "**Trusted repo**: /Users/kevinmarlow/Development/IDEAS/Mahtr/mahtr_static_site (kevinmmarlow/mahtr_static_site), private — confidential material is fine here; only this repo's own work belongs in it",
+      "**Org-specific CLIs**: None configured",
+      "and any \"routine under <user>/ prefix\" qualifiers: branch prefix `kmarlow/` (from user CLAUDE.md), e.g. `kmarlow/<ticket-id>-descriptive-text`"
+    ]
+  }
 }
